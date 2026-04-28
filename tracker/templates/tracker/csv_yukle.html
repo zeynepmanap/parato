@@ -1,0 +1,114 @@
+{% extends 'tracker/base.html' %}
+{% block title %}CSV Yükle · Parato{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { margin-bottom: 32px; }
+  .page-header h1 { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .page-header p { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 520px;
+  }
+  .form-label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .form-group { margin-bottom: 20px; }
+
+  .drop-zone {
+    border: 1px dashed rgba(74,222,128,0.25);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface2);
+  }
+  .drop-zone:hover { border-color: rgba(74,222,128,0.5); background: rgba(74,222,128,0.03); }
+  .drop-zone i { font-size: 28px; color: var(--text-muted); display: block; margin-bottom: 10px; }
+  .drop-zone p { font-size: 13px; color: var(--text-muted); margin: 0; }
+  .drop-zone span { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  input[type="file"] { display: none; }
+
+  .info-box {
+    background: rgba(74,222,128,0.04);
+    border: 1px solid rgba(74,222,128,0.1);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+  .info-box p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.7;
+  }
+  .info-box strong { color: var(--green); font-weight: 500; }
+
+  .btn-submit {
+    background: var(--green);
+    color: #041a0c;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .btn-submit:hover { background: #86efac; transform: translateY(-1px); }
+</style>
+
+<div class="page-header">
+  <h1>CSV Yükle</h1>
+  <p>Banka ekstresini içe aktar</p>
+</div>
+
+<div class="form-card">
+  <div class="info-box">
+    <p>
+      CSV dosyan şu sütunları içermeli:<br>
+      <strong>baslik, tutar, kategori, tarih</strong><br>
+      Tarih formatı: <strong>YYYY-MM-DD</strong>
+    </p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+      <label class="form-label">CSV Dosyası</label>
+      <label for="csv-input">
+        <div class="drop-zone" id="drop-zone">
+          <i class="bi bi-file-earmark-spreadsheet"></i>
+          <p>Dosyayı buraya sürükle veya tıkla</p>
+          <span id="file-name">— .csv dosyası seç —</span>
+        </div>
+      </label>
+      <input type="file" id="csv-input" name="csv_dosya" accept=".csv">
+    </div>
+    <button type="submit" class="btn-submit">Yükle ve İçe Aktar →</button>
+  </form>
+</div>
+
+<script>
+  document.getElementById('csv-input').addEventListener('change', function() {
+    const name = this.files[0]?.name || '— .csv dosyası seç —';
+    document.getElementById('file-name').textContent = name;
+  });
+</script>
+{% endblock %}

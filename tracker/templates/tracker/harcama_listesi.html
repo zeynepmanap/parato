@@ -1,0 +1,92 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Harcamalar · Parato{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+  .page-header h1 { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .page-header p { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .btn-primary { background: var(--green); color: #041a0c; border: none; padding: 9px 18px; border-radius: 10px; font-family: var(--sans); font-weight: 600; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
+  .btn-primary:hover { background: #86efac; transform: translateY(-1px); }
+
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .table-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .table-head h2 { font-size: 13px; font-weight: 600; color: var(--text); }
+  .pill { font-family: var(--mono); font-size: 10px; background: rgba(74,222,128,0.08); color: var(--green); border: 1px solid rgba(74,222,128,0.15); padding: 3px 10px; border-radius: 20px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); padding: 10px 20px; text-align: left; font-weight: 400; }
+  thead th:last-child { text-align: right; }
+  tbody tr { border-top: 1px solid rgba(74,222,128,0.05); transition: background 0.1s; }
+  tbody tr:hover { background: rgba(74,222,128,0.03); }
+  tbody td { padding: 13px 20px; font-size: 13px; color: #a7d9b8; }
+  .td-title { font-weight: 500; color: var(--text); }
+  .td-amount { text-align: right; font-family: var(--mono); font-size: 13px; color: var(--green); }
+  .kat { font-family: var(--mono); font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(74,222,128,0.07); color: #6bbf8a; border: 1px solid rgba(74,222,128,0.12); text-transform: uppercase; }
+
+  .actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .btn-edit { font-size: 12px; color: var(--text-muted); text-decoration: none; padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; transition: all 0.15s; }
+  .btn-edit:hover { color: var(--green); border-color: rgba(74,222,128,0.3); }
+  .btn-delete { font-size: 12px; color: #f87171; text-decoration: none; padding: 4px 10px; border: 1px solid rgba(239,68,68,0.2); border-radius: 6px; transition: all 0.15s; }
+  .btn-delete:hover { background: rgba(239,68,68,0.08); }
+
+  .empty { text-align: center; padding: 48px; color: var(--text-dim); font-family: var(--mono); font-size: 12px; }
+
+  .msg-success { background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #86efac; margin-bottom: 16px; }
+</style>
+
+{% for message in messages %}
+  <div class="msg-success">{{ message }}</div>
+{% endfor %}
+
+<div class="page-header">
+  <div>
+    <h1>Tüm Harcamalar</h1>
+    <p>{{ harcamalar.count }} kayıt</p>
+  </div>
+  <a href="{% url 'harcama_ekle' %}" class="btn-primary">
+    <i class="bi bi-plus-lg"></i> Yeni Ekle
+  </a>
+</div>
+
+<div class="table-card">
+  <div class="table-head">
+    <h2>Harcama Listesi</h2>
+    <span class="pill">{{ harcamalar.count }} toplam</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Başlık</th>
+        <th>Kategori</th>
+        <th>Tarih</th>
+        <th>Tutar</th>
+        <th style="text-align:right">İşlem</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in harcamalar %}
+      <tr>
+        <td class="td-title">{{ h.baslik }}</td>
+        <td><span class="kat">{{ h.get_kategori_display }}</span></td>
+        <td>{{ h.tarih }}</td>
+        <td class="td-amount">{{ h.tutar }} ₺</td>
+        <td>
+          <div class="actions">
+            <a href="{% url 'harcama_duzenle' h.pk %}" class="btn-edit">
+              <i class="bi bi-pencil"></i> Düzenle
+            </a>
+            <a href="{% url 'harcama_sil' h.pk %}" class="btn-delete"
+               onclick="return confirm('Bu harcamayı silmek istediğinden emin misin?')">
+              <i class="bi bi-trash"></i> Sil
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="empty">— henüz harcama yok —</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'tracker/base.html' %}
+{% load custom_filters %}
+{% block title %}Genel Bakış · Parato{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+  .page-header h1 { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .page-header p { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .btn-primary { background: var(--green); color: #041a0c; border: none; padding: 9px 18px; border-radius: 10px; font-family: var(--sans); font-weight: 600; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap; }
+  .btn-primary:hover { background: #86efac; transform: translateY(-1px); }
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .metric-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+  .metric-val { font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .metric-val .unit { font-size: 14px; font-weight: 400; color: var(--green); margin-left: 3px; }
+  .metric-sub { font-size: 11px; color: var(--text-dim); margin-top: 6px; font-family: var(--mono); }
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .chart-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .table-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .table-head h2 { font-size: 13px; font-weight: 600; color: var(--text); }
+  .pill { font-family: var(--mono); font-size: 10px; background: rgba(74,222,128,0.08); color: var(--green); border: 1px solid rgba(74,222,128,0.15); padding: 3px 10px; border-radius: 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); padding: 10px 20px; text-align: left; font-weight: 400; }
+  thead th:last-child { text-align: right; }
+  tbody tr { border-top: 1px solid rgba(74,222,128,0.05); transition: background 0.1s; }
+  tbody tr:hover { background: rgba(74,222,128,0.03); }
+  tbody td { padding: 13px 20px; font-size: 13px; color: #a7d9b8; }
+  .td-title { font-weight: 500; color: var(--text); }
+  .td-amount { text-align: right; font-family: var(--mono); font-size: 13px; color: var(--green); }
+  .kat { font-family: var(--mono); font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(74,222,128,0.07); color: #6bbf8a; border: 1px solid rgba(74,222,128,0.12); text-transform: uppercase; }
+  .empty { text-align: center; padding: 48px; color: var(--text-dim); font-family: var(--mono); font-size: 12px; }
+  .ay-select { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 36px 9px 14px; font-family: var(--mono); font-size: 12px; color: var(--text-muted); outline: none; cursor: pointer; appearance: none; transition: border-color 0.15s; }
+  .ay-select:hover { border-color: rgba(74,222,128,0.3); }
+  .select-wrap { position: relative; }
+  .select-wrap i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 11px; pointer-events: none; }
+</style>
+
+<div class="page-header">
+  <div>
+    <h1>Genel Bakış</h1>
+    <p>{{ secili_ay_ismi }} {{ secili_yil }} · Harcama özeti</p>
+  </div>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <div class="select-wrap">
+      <select class="ay-select" onchange="window.location.href='/?ay='+this.value.split('-')[0]+'&yil='+this.value.split('-')[1]">
+        {% for a in aylar %}
+        <option value="{{ a.ay }}-{{ a.yil }}"
+          {% if a.ay == secili_ay and a.yil == secili_yil %}selected{% endif %}>
+          {{ ay_isimleri|get_item:a.ay }} {{ a.yil }}
+        </option>
+        {% endfor %}
+      </select>
+      <i class="bi bi-chevron-down"></i>
+    </div>
+    <a href="{% url 'harcama_ekle' %}" class="btn-primary">
+      <i class="bi bi-plus-lg"></i> Harcama Ekle
+    </a>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric">
+    <div class="metric-label">Bu Ay Toplam</div>
+    <div class="metric-val">{{ toplam }}<span class="unit">₺</span></div>
+    <div class="metric-sub">{{ secili_ay_ismi }} {{ secili_yil }}</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">En Çok Harcanan</div>
+    <div class="metric-val" style="font-size:18px">{{ en_cok }}</div>
+    <div class="metric-sub">Kategori</div>
+  </div>
+  <div class="metric">
+    <div class="metric-label">Toplam İşlem</div>
+    <div class="metric-val">{{ islem_sayisi }}</div>
+    <div class="metric-sub">Kayıt</div>
+  </div>
+</div>
+
+{% if grafik_etiketler %}
+<div class="charts">
+  <div class="chart-card">
+    <div class="chart-title">Kategori Dağılımı</div>
+    <canvas id="pastaGrafik" height="220"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Kategori Bazlı Harcama (₺)</div>
+    <canvas id="cubukGrafik" height="220"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<div class="table-card">
+  <div class="table-head">
+    <h2>Son Harcamalar</h2>
+    <span class="pill">{{ islem_sayisi }} kayıt</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Başlık</th>
+        <th>Kategori</th>
+        <th>Tarih</th>
+        <th>Tutar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in harcamalar %}
+      <tr>
+        <td class="td-title">{{ h.baslik }}</td>
+        <td><span class="kat">{{ h.get_kategori_display }}</span></td>
+        <td>{{ h.tarih }}</td>
+        <td class="td-amount">{{ h.tutar }} ₺</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4"><div class="empty">— bu ay harcama yok —</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if grafik_etiketler %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const etiketler = {{ grafik_etiketler|safe }};
+  const degerler = {{ grafik_degerler|safe }};
+  const renkler = ['#4ade80','#22d3ee','#f59e0b','#f87171','#a78bfa','#fb923c','#34d399'];
+
+  new Chart(document.getElementById('pastaGrafik'), {
+    type: 'doughnut',
+    data: {
+      labels: etiketler,
+      datasets: [{
+        data: degerler,
+        backgroundColor: renkler,
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#4a7a58',
+            font: { family: 'DM Mono', size: 10 },
+            padding: 12,
+            boxWidth: 10
+          }
+        }
+      },
+      cutout: '65%'
+    }
+  });
+
+  new Chart(document.getElementById('cubukGrafik'), {
+    type: 'bar',
+    data: {
+      labels: etiketler,
+      datasets: [{
+        data: degerler,
+        backgroundColor: renkler,
+        borderRadius: 6,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { color: '#4a7a58', font: { family: 'DM Mono', size: 10 } },
+          grid: { color: 'rgba(74,222,128,0.05)' }
+        },
+        y: {
+          ticks: { color: '#4a7a58', font: { family: 'DM Mono', size: 10 } },
+          grid: { color: 'rgba(74,222,128,0.05)' }
+        }
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

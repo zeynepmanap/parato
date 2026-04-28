@@ -1,0 +1,205 @@
+{% extends 'tracker/base.html' %}
+{% block title %}AI Koç · Parato{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { margin-bottom: 32px; }
+  .page-header h1 { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .page-header p { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .ai-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 700px;
+    margin-bottom: 16px;
+  }
+  .ai-intro { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; }
+  .ai-icon { width: 40px; height: 40px; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .ai-intro h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .ai-intro p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0; }
+
+  .feature-list { margin-bottom: 24px; }
+  .feature-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(74,222,128,0.05); font-size: 13px; color: var(--text-muted); }
+  .feature-item:last-child { border-bottom: none; }
+  .feature-item i { color: var(--green); font-size: 14px; width: 16px; }
+
+  .btn-submit { background: var(--green); color: #041a0c; border: none; padding: 11px 24px; border-radius: 10px; font-family: var(--sans); font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.15s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-submit:hover { background: #86efac; transform: translateY(-1px); }
+
+  .result-card { background: var(--surface); border: 1px solid rgba(74,222,128,0.2); border-radius: 14px; padding: 28px; max-width: 700px; margin-bottom: 16px; }
+  .result-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 14px; }
+  .result-line { font-size: 14px; color: var(--text-muted); line-height: 1.8; margin-bottom: 4px; }
+  .result-header { color: #4ade80; font-size: 11px; letter-spacing: 0.08em; margin-top: 16px; margin-bottom: 4px; }
+  .result-divider { border: none; border-top: 1px solid rgba(74,222,128,0.08); margin: 12px 0; }
+</style>
+
+<div class="page-header">
+  <h1>AI Koç</h1>
+  <p>Kişisel harcama analizi</p>
+</div>
+
+<div class="ai-card">
+  <div class="ai-intro">
+    <div class="ai-icon">✦</div>
+    <div>
+      <h3>Harcamalarını analiz edeyim</h3>
+      <p>Bu ayki harcama verilerini inceleyerek kişiselleştirilmiş tasarruf önerileri sunuyorum.</p>
+    </div>
+  </div>
+
+  <div class="feature-list">
+    <div class="feature-item"><i class="bi bi-check2"></i> Kategori bazlı harcama dağılımı</div>
+    <div class="feature-item"><i class="bi bi-check2"></i> Fazla harcanan alanların tespiti</div>
+    <div class="feature-item"><i class="bi bi-check2"></i> Kişisel tasarruf önerileri</div>
+    <div class="feature-item"><i class="bi bi-check2"></i> Gelecek ay için bütçe tahmini</div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn-submit">
+      <i class="bi bi-stars"></i> Analizi Başlat
+    </button>
+  </form>
+</div>
+
+{% if analiz %}
+<div class="result-card">
+  <div class="result-label">✦ Parato AI Koç · Analiz Raporu</div>
+  {% for satir in analiz_satirlar %}
+    {% if satir == '---' %}
+      <hr class="result-divider">
+    {% elif satir %}
+      {% if satir == satir|upper and satir|length > 2 and satir|length < 60 %}
+        <div class="result-header">{{ satir }}</div>
+      {% else %}
+        <div class="result-line">{{ satir }}</div>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- CHAT BÖLÜMÜ -->
+<div class="ai-card">
+  <div class="ai-intro">
+    <div class="ai-icon">💬</div>
+    <div>
+      <h3>Finans Koçunla Konuş</h3>
+      <p>Harcamalarınla ilgili aklına takılan her şeyi sor.</p>
+    </div>
+  </div>
+
+  <div id="chat-mesajlar" style="
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  "></div>
+
+  <div style="display: flex; gap: 10px;">
+    <input type="text" id="chat-input" placeholder="Örn: Market harcamalarımı nasıl azaltabilirim?" style="
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid rgba(74,222,128,0.12);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    ">
+    <button onclick="chatGonder()" style="
+      background: var(--green);
+      color: #041a0c;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    ">Gönder →</button>
+  </div>
+</div>
+
+<script>
+  let gecmis = [];
+
+  function chatGonder() {
+    const input = document.getElementById('chat-input');
+    const mesaj = input.value.trim();
+    if (!mesaj) return;
+
+    mesajEkle('user', mesaj);
+    gecmis.push({role: 'user', content: mesaj});
+    input.value = '';
+
+    const yukleniyorId = 'yukleniyor-' + Date.now();
+    mesajEkle('assistant', 'Düşünüyorum...', yukleniyorId);
+
+    fetch('/analiz/chat/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({mesajlar: gecmis})
+    })
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById(yukleniyorId).remove();
+      mesajEkle('assistant', data.cevap);
+      gecmis.push({role: 'assistant', content: data.cevap});
+    })
+    .catch(() => {
+      document.getElementById(yukleniyorId).remove();
+      mesajEkle('assistant', 'Bir hata oluştu, tekrar dene.');
+    });
+  }
+
+  function mesajEkle(rol, metin, id) {
+    const kutu = document.getElementById('chat-mesajlar');
+    const div = document.createElement('div');
+    if (id) div.id = id;
+    div.style.cssText = `
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.8;
+      max-width: 85%;
+      ${rol === 'user'
+        ? 'background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.15); color: #a7d9b8; align-self: flex-end; margin-left: auto;'
+        : 'background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); align-self: flex-start;'
+      }
+    `;
+
+    if (rol === 'assistant') {
+      const satirlar = metin.split('\n').filter(s => s.trim());
+      div.innerHTML = satirlar.map(satir => {
+        const s = satir.trim();
+        if (s === s.toUpperCase() && s.length < 60 && s.length > 2) {
+          return `<div style="color: #4ade80; font-size: 11px; letter-spacing: 0.08em; margin-top: 10px; margin-bottom: 2px;">${s}</div>`;
+        }
+        return `<div>${s}</div>`;
+      }).join('');
+    } else {
+      div.textContent = metin;
+    }
+
+    kutu.appendChild(div);
+    kutu.scrollTop = kutu.scrollHeight;
+  }
+
+  document.getElementById('chat-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') chatGonder();
+  });
+</script>
+
+{% endblock %}

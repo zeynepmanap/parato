@@ -1,0 +1,122 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Harcama Ekle · Parato{% endblock %}
+
+{% block content %}
+<style>
+  .page-header { margin-bottom: 32px; }
+  .page-header h1 { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .page-header p { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 520px;
+  }
+
+  .form-group { margin-bottom: 20px; }
+
+  .form-label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .form-control, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid rgba(74,222,128,0.12);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: rgba(74,222,128,0.4);
+    background: #0e1a12;
+  }
+  .form-control::placeholder { color: var(--text-dim); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .btn-submit {
+    background: var(--green);
+    color: #041a0c;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .btn-submit:hover { background: #86efac; transform: translateY(-1px); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+</style>
+
+<div class="page-header">
+  <h1>Harcama Ekle</h1>
+  <p>Yeni bir kayıt oluştur</p>
+</div>
+
+<div class="form-card">
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label class="form-label">Başlık</label>
+      <input type="text" name="baslik" class="form-control" placeholder="Örn: Migros alışverişi" required>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tutar (₺)</label>
+        <input type="number" name="tutar" class="form-control" placeholder="0.00" step="0.01" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tarih</label>
+        <input type="date" name="tarih" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Kategori</label>
+      <select name="kategori" class="form-select">
+        <option value="market">🛒 Market</option>
+        <option value="ulasim">🚌 Ulaşım</option>
+        <option value="saglik">💊 Sağlık</option>
+        <option value="eglence">🎬 Eğlence</option>
+        <option value="fatura">📄 Fatura</option>
+        <option value="yemek">🍔 Yemek</option>
+        <option value="diger">📦 Diğer</option>
+      </select>
+    </div>
+
+    <hr class="divider">
+
+    <div class="form-group">
+      <label class="form-label">Açıklama <span style="color:var(--text-dim)">(opsiyonel)</span></label>
+      <textarea name="aciklama" class="form-control" rows="2" placeholder="Notlarını buraya ekleyebilirsin..."></textarea>
+    </div>
+
+    <button type="submit" class="btn-submit">Kaydet →</button>
+  </form>
+</div>
+{% endblock %}

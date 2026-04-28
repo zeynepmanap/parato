@@ -1,0 +1,112 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Giriş · Parato{% endblock %}
+
+{% block content %}
+<style>
+  .auth-wrap {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .auth-logo {
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--green);
+    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+  }
+  .auth-logo span { color: var(--text-muted); }
+  .auth-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+  .form-label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .form-control {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid rgba(74,222,128,0.12);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 16px;
+  }
+  .form-control:focus { border-color: rgba(74,222,128,0.4); }
+  .btn-submit {
+    background: var(--green);
+    color: #041a0c;
+    border: none;
+    padding: 11px;
+    border-radius: 10px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .btn-submit:hover { background: #86efac; }
+  .auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .auth-footer a { color: var(--green); text-decoration: none; }
+  .error-msg {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #fca5a5;
+    margin-bottom: 16px;
+  }
+</style>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">parato<span>.ai</span></div>
+    <div class="auth-sub">Hesabına giriş yap</div>
+
+    {% for message in messages %}
+      <div class="error-msg">{{ message }}</div>
+    {% endfor %}
+
+    <form method="post">
+      {% csrf_token %}
+      <label class="form-label">Kullanıcı Adı</label>
+      <input type="text" name="username" class="form-control" placeholder="kullanici_adi" required autofocus>
+      <label class="form-label">Şifre</label>
+      <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+      <button type="submit" class="btn-submit">Giriş Yap →</button>
+    </form>
+
+    <div class="auth-footer">
+      Hesabın yok mu? <a href="{% url 'kayit' %}">Kayıt ol</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
