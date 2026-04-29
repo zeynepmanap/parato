@@ -2,9 +2,6 @@
 
 Parato, kullanıcıların harcamalarını takip etmesini, analiz etmesini ve yerel LLM (Llama3) destekli AI koç ile kişiselleştirilmiş tasarruf önerileri almasını sağlayan bir web uygulamasıdır.
 
-## 🖼️ Ekran Görüntüleri
-
-![Dashboard](screenshots/Ekran%20Resmi%202026-04-28%2023.26.08.png)
 
 ## 🚀 Özellikler
 
